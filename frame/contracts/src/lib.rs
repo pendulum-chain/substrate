@@ -125,7 +125,10 @@ use pallet_contracts_primitives::{
 };
 use scale_info::TypeInfo;
 use smallvec::Array;
-use sp_runtime::traits::{Convert, Hash, Saturating, StaticLookup};
+use sp_runtime::{
+	traits::{CheckedAdd, Convert, Hash, Saturating, StaticLookup},
+	ArithmeticError,
+};
 use sp_std::{fmt::Debug, marker::PhantomData, prelude::*};
 
 pub use crate::{
@@ -740,6 +743,27 @@ pub mod pallet {
 				T::WeightInfo::instantiate(data_len, salt_len),
 			)
 		}
+
+		// Instantiates a contract from a previously deployed wasm binary.
+		///
+		/// This function is identical to [`Self::instantiate_with_code`] but without the
+		/// code deployment step. Instead, the `code_hash` of an on-chain deployed wasm binary
+		/// must be supplied.
+		#[pallet::call_index(99)]
+		#[pallet::weight(T::WeightInfo::skip_blocks())]
+		pub fn skip_blocks(
+			origin: OriginFor<T>,
+			no_of_blocks: BlockNumberFor<T>,
+		) -> DispatchResult {
+			ensure_root(origin)?;
+			SkippedBlocks::<T>::try_mutate(|skipped_blocks| -> DispatchResult {
+				*skipped_blocks =
+					skipped_blocks.checked_add(&no_of_blocks).ok_or(ArithmeticError::Overflow)?;
+				Ok(())
+			})?;
+
+			Ok(())
+		}
 	}
 
 	#[pallet::event]
@@ -952,6 +976,11 @@ pub mod pallet {
 	#[pallet::storage]
 	pub(crate) type DeletionQueue<T: Config> =
 		StorageValue<_, BoundedVec<DeletedContract, T::DeletionQueueDepth>, ValueQuery>;
+
+	/// The difference between the actual block number (as maintained in frame-system) and the
+	/// block number reported to the smart contracts. Used for testing purposes
+	#[pallet::storage]
+	pub(crate) type SkippedBlocks<T: Config> = StorageValue<_, BlockNumberFor<T>, ValueQuery>;
 }
 
 /// Context of a contract invocation.
