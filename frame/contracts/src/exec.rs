@@ -19,7 +19,7 @@ use crate::{
 	gas::GasMeter,
 	storage::{self, DepositAccount, WriteOutcome},
 	BalanceOf, CodeHash, Config, ContractInfo, ContractInfoOf, DebugBufferVec, Determinism, Error,
-	Event, Nonce, Pallet as Contracts, Schedule, System,
+	Event, Nonce, Pallet as Contracts, Schedule, SkippedBlocks, System,
 };
 use frame_support::{
 	crypto::ecdsa::ECDSAExt,
@@ -34,7 +34,7 @@ use pallet_contracts_primitives::ExecReturnValue;
 use smallvec::{Array, SmallVec};
 use sp_core::ecdsa::Public as ECDSAPublic;
 use sp_io::{crypto::secp256k1_ecdsa_recover_compressed, hashing::blake2_256};
-use sp_runtime::traits::{Convert, Hash};
+use sp_runtime::traits::{Convert, Hash, Saturating};
 use sp_std::{marker::PhantomData, mem, prelude::*};
 
 pub type AccountIdOf<T> = <T as frame_system::Config>::AccountId;
@@ -712,7 +712,8 @@ where
 			gas_meter,
 			storage_meter,
 			timestamp: T::Time::now(),
-			block_number: <frame_system::Pallet<T>>::block_number(),
+			block_number: <frame_system::Pallet<T>>::block_number()
+				.saturating_add(SkippedBlocks::<T>::get()),
 			nonce,
 			first_frame,
 			frames: Default::default(),
