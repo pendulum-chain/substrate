@@ -56,7 +56,6 @@ pub trait WeightInfo {
 	fn call_with_code_per_byte(c: u32, ) -> Weight;
 	fn instantiate_with_code(c: u32, i: u32, s: u32, ) -> Weight;
 	fn instantiate(i: u32, s: u32, ) -> Weight;
-	fn skip_blocks() -> Weight;
 	fn call() -> Weight;
 	fn upload_code(c: u32, ) -> Weight;
 	fn remove_code() -> Weight;
@@ -323,11 +322,6 @@ impl<T: frame_system::Config> WeightInfo for SubstrateWeight<T> {
 			.saturating_add(Weight::from_parts(1_801, 0).saturating_mul(s.into()))
 			.saturating_add(T::DbWeight::get().reads(9_u64))
 			.saturating_add(T::DbWeight::get().writes(7_u64))
-	}
-	fn skip_blocks() -> Weight {
-		Weight::from_parts(13_100_000, 3631)
-			.saturating_add(T::DbWeight::get().reads(1_u64))
-			.saturating_add(T::DbWeight::get().writes(1_u64))
 	}
 	/// Storage: Contracts ContractInfoOf (r:1 w:1)
 	/// Proof: Contracts ContractInfoOf (max_values: None, max_size: Some(290), added: 2765, mode: Measured)
@@ -2426,11 +2420,6 @@ impl WeightInfo for () {
 			.saturating_add(Weight::from_parts(1_801, 0).saturating_mul(s.into()))
 			.saturating_add(RocksDbWeight::get().reads(9_u64))
 			.saturating_add(RocksDbWeight::get().writes(7_u64))
-	}
-	fn skip_blocks() -> Weight {
-		Weight::from_parts(13_100_000, 3631)
-			.saturating_add(RocksDbWeight::get().reads(1_u64))
-			.saturating_add(RocksDbWeight::get().writes(1_u64))
 	}
 	/// Storage: Contracts ContractInfoOf (r:1 w:1)
 	/// Proof: Contracts ContractInfoOf (max_values: None, max_size: Some(290), added: 2765, mode: Measured)
