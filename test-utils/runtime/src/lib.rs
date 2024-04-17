@@ -164,13 +164,21 @@ pub enum Extrinsic {
 	OffchainIndexSet(Vec<u8>, Vec<u8>),
 	OffchainIndexClear(Vec<u8>),
 	Store(Vec<u8>),
+	/// Read X times from the state some data and then panic!
+	///
+	/// Returns `Ok` if it didn't read anything.
+	ReadAndPanic(u32),
+	/// Read X times from the state some data.
+	///
+	/// Panics if it can not read `X` times.
+	Read(u32),
 }
 
 #[cfg(feature = "std")]
 impl serde::Serialize for Extrinsic {
 	fn serialize<S>(&self, seq: S) -> Result<S::Ok, S::Error>
 	where
-		S: ::serde::Serializer,
+		S: serde::Serializer,
 	{
 		self.using_encoded(|bytes| seq.serialize_bytes(bytes))
 	}
@@ -210,6 +218,8 @@ impl BlindCheckable for Extrinsic {
 			Extrinsic::OffchainIndexSet(key, value) => Ok(Extrinsic::OffchainIndexSet(key, value)),
 			Extrinsic::OffchainIndexClear(key) => Ok(Extrinsic::OffchainIndexClear(key)),
 			Extrinsic::Store(data) => Ok(Extrinsic::Store(data)),
+			Extrinsic::ReadAndPanic(i) => Ok(Extrinsic::ReadAndPanic(i)),
+			Extrinsic::Read(i) => Ok(Extrinsic::Read(i)),
 		}
 	}
 }
@@ -437,7 +447,6 @@ cfg_if! {
 
 #[derive(Clone, Eq, PartialEq, TypeInfo)]
 pub struct Runtime;
-
 impl GetNodeBlockType for Runtime {
 	type NodeBlock = Block;
 }
@@ -728,6 +737,14 @@ cfg_if! {
 			impl sp_api::Metadata<Block> for Runtime {
 				fn metadata() -> OpaqueMetadata {
 					unimplemented!()
+				}
+
+				fn metadata_at_version(_version: u32) -> Option<OpaqueMetadata> {
+						unimplemented!()
+				}
+
+				fn metadata_versions() -> sp_std::vec::Vec<u32> {
+						unimplemented!()
 				}
 			}
 
@@ -1020,6 +1037,14 @@ cfg_if! {
 			impl sp_api::Metadata<Block> for Runtime {
 				fn metadata() -> OpaqueMetadata {
 					unimplemented!()
+				}
+
+				fn metadata_at_version(_version: u32) -> Option<OpaqueMetadata> {
+						unimplemented!()
+				}
+
+				fn metadata_versions() -> sp_std::vec::Vec<u32> {
+						unimplemented!()
 				}
 			}
 
